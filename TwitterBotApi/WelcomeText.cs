@@ -12,6 +12,6 @@
 			$"\n{Commands.PromoteUser} <TelegramUserName>\n{Commands.DemoteUser} <TelegramUserName>" +
 			$"\n{Commands.AddBot} <UserName> <EmailId> <Password>\n{Commands.RemoveBot} <UserName>" +
 			$"\n{Commands.ReEnableId} <BotUserName>(use activate -all to activate all ids)\n{Commands.FailedLogins}"+
-			$"\n{Commands.BotStatistics}";
+			$"\n{Commands.BotStatistics}\n{Commands.KillSwitch}";
 	}
 }

@@ -114,6 +114,10 @@ namespace TwitterBotApi.Services
 			{
 				await SendResultResponse(webhookUpdate, _botRepo.GetBotStatistics(webhookUpdate?.Message?.From?.Username));
 			}
+			else if (argument.Contains(Commands.KillSwitch))
+			{
+				await SendResultResponse(webhookUpdate, await KillAllProcesses(webhookUpdate));
+			}
 			else
 			{
 				await SendResultResponse(webhookUpdate, "Invalid Command");
@@ -136,6 +140,25 @@ namespace TwitterBotApi.Services
 				}
 			}
 			_botRepo.UpdateKilledProcesses(killedProcessIds);
+		}
+
+		private async Task<string> KillAllProcesses(WebHookUpdate webhookUpdate)
+		{
+			var isAuthorized = await _botRepo.IsUserAuthorized(webhookUpdate?.Message?.From?.Username);
+			if (!isAuthorized)
+			{
+				await _telegramHelper.SendMessage(webhookUpdate?.Message?.Chat?.Id, "You are not authorized to use this kill switch.");
+			}
+			try
+			{
+				_processHelper.KillAllProcessesByName("chromedriver.exe");
+				_processHelper.KillAllProcessesByName("chrome.exe");
+				return "All chrome drivers and chrome instances have been killed.";
+			}
+			catch (Exception)
+			{
+				return "Failed to kill chrome drivers and chrome instances.";
+			}
 		}
 
 		private async Task SendResultResponse(WebHookUpdate? webhookUpdate, string? message)

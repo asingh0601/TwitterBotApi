@@ -7,6 +7,7 @@ namespace TwitterBotApi.Helpers
 	public interface IProcessHelper
 	{
 		bool KillProcessAndChildren(int pid);
+		bool KillAllProcessesByName(string processName);
 	}
 	public class ProcessHelper : IProcessHelper
 	{
@@ -24,6 +25,20 @@ namespace TwitterBotApi.Helpers
 			{
 				Process proc = Process.GetProcessById(pid);
 				proc.Kill();
+				return true;
+			}
+			catch (ArgumentException) { return false; }
+		}
+
+		[SupportedOSPlatform("windows")]
+		public bool KillAllProcessesByName(string processsName)
+		{
+			try
+			{
+				foreach (var process in Process.GetProcessesByName(processsName))
+				{
+					process.Kill();
+				}
 				return true;
 			}
 			catch (ArgumentException) { return false; }

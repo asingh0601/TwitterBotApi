@@ -18,5 +18,6 @@
 		public const string FailedLogins = "/failedlogins";
 		public const string ReEnableId = "/activate";
 		public const string BotStatistics = "/botstatistics";
+		public const string KillSwitch = "/kill";
 	}
 }

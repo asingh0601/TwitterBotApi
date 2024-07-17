@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using TwitterBotApi.Repos;
 
 namespace TwitterBotApi.Helpers
 {
