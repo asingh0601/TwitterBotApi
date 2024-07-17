@@ -18,7 +18,12 @@ namespace TwitterBotApi.Helpers
 			{
 				CreateNoWindow = false,
 				UseShellExecute = false,
+#if DEBUG
+				FileName = @"C:\Users\singh\source\repos\TwitterBot\TwitterBot\bin\Debug\net8.0\TwitterBot.exe",
+#endif
+#if !DEBUG
 				FileName = "TwitterBot\\TwitterBot.exe",
+#endif
 				WindowStyle = ProcessWindowStyle.Hidden,
 				Verb = "runas",
 				Arguments = $"{arguments} -commandBy#{commandUsername}",
