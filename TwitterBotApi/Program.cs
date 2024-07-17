@@ -13,11 +13,11 @@ namespace TwitterBotApi
 		{
 			var builder = WebApplication.CreateBuilder(args);
 			var env = builder.Environment.EnvironmentName;
-			IConfigurationBuilder config = new ConfigurationBuilder()
+			IConfigurationBuilder configBuilder = new ConfigurationBuilder()
 				.AddJsonFile("appsettings.json", true)
 				.AddJsonFile($"appsettings.{env}.json", true, true)
 				.AddEnvironmentVariables();
-
+			configBuilder.Build();
 			builder.Services.AddRouting().AddControllers().AddNewtonsoftJson();
 			builder.Services.AddDbContext<BotDbContext>(ServiceLifetime.Transient);
 			builder.Services.AddScoped<IProcessHelper, ProcessHelper>();

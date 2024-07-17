@@ -6,7 +6,7 @@ namespace TwitterBotApi.Repos
 {
 	public interface IBotRepo
 	{
-		Task<List<AuthorisedUser>> GetAuthorizedUsers();
+		Task<bool> IsUserAuthorized(string? commandUserName);
 		bool IsAdmin(string? commandUserName);
 		Task<string?> AddUser(string? commandUserName, string username);
 		Task<string?> RemoveUser(string? commandUserName, string username);
@@ -140,9 +140,9 @@ namespace TwitterBotApi.Repos
 			}
 		}
 
-		public async Task<List<AuthorisedUser>> GetAuthorizedUsers()
+		public async Task<bool> IsUserAuthorized(string? commandUserName)
 		{
-			return await _botDbContext.AuthorisedUsers.ToListAsync();
+			return await _botDbContext.AuthorisedUsers.AnyAsync(x => x.UserName == commandUserName.ToLower());
 		}
 
 		public async Task AddUpdateProcessStatus(long? updateId, long? messageId, string? userName, string? message)

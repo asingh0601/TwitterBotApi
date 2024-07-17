@@ -21,7 +21,7 @@ namespace TwitterBotApi.Repos
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseSqlServer(Configuration.GetConnectionString("DblConnectionString"), options => options.EnableRetryOnFailure());
+			optionsBuilder.UseSqlServer(Configuration.GetConnectionString("DbConnectionString"), options => options.EnableRetryOnFailure());
 		}
 	}
 }

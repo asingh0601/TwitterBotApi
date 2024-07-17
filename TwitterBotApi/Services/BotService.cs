@@ -22,8 +22,7 @@ namespace TwitterBotApi.Services
 
 		public async Task<bool> IsAuthorizedUser(WebHookUpdate webhookUpdate)
 		{
-			var authorizedUsers = await _botRepo.GetAuthorizedUsers();
-			var isAuthorized = authorizedUsers.Any(a => a.UserName == webhookUpdate?.Message?.From?.Username);
+			var isAuthorized = await _botRepo.IsUserAuthorized(webhookUpdate?.Message?.From?.Username);
 			if (!isAuthorized)
 			{
 				await _telegramHelper.SendMessage(webhookUpdate?.Message?.Chat?.Id, "You are not authorized to use this bot.");
