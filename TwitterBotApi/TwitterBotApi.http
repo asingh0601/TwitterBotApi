@@ -1,0 +1,6 @@
+@TwitterBotApi_HostAddress = http://localhost:5271
+
+GET {{TwitterBotApi_HostAddress}}/hangfire/
+Accept: application/json
+
+###
