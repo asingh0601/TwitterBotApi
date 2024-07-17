@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using Hangfire.Server;
+using System.Diagnostics;
 using System.Management;
 using System.Runtime.Versioning;
+using TwitterBotApi.Models;
 
 namespace TwitterBotApi.Helpers
 {
@@ -31,17 +33,20 @@ namespace TwitterBotApi.Helpers
 		}
 
 		[SupportedOSPlatform("windows")]
-		public bool KillAllProcessesByName(string processsName)
+		public bool KillAllProcessesByName(string processName)
 		{
 			try
 			{
-				foreach (var process in Process.GetProcessesByName(processsName))
+				Process[] workers = Process.GetProcessesByName(processName);
+				foreach (Process worker in workers)
 				{
-					process.Kill();
+					worker.Kill();
+					worker.WaitForExit();
+					worker.Dispose();
 				}
 				return true;
 			}
-			catch (ArgumentException) { return false; }
+			catch (Exception) { return false; }
 		}
 	}
 }

@@ -151,8 +151,8 @@ namespace TwitterBotApi.Services
 			}
 			try
 			{
-				_processHelper.KillAllProcessesByName("chromedriver.exe");
-				_processHelper.KillAllProcessesByName("chrome.exe");
+				_processHelper.KillAllProcessesByName("chromedriver");
+				_processHelper.KillAllProcessesByName("chrome");
 				return "All chrome drivers and chrome instances have been killed.";
 			}
 			catch (Exception)

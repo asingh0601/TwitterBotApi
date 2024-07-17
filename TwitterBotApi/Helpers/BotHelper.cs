@@ -36,7 +36,6 @@ namespace TwitterBotApi.Helpers
 				exeProcess.BeginOutputReadLine();
 				exeProcess.BeginErrorReadLine();
 				exeProcess.WaitForExit();
-				exeProcess?.WaitForExit();
 				exeProcess.OutputDataReceived += async (s, e) => { await _telegramHelper.SendMessage(chatId, e.Data); };
 				exeProcess.ErrorDataReceived += async (s, e) =>
 				{
