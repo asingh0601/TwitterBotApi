@@ -142,6 +142,7 @@ namespace TwitterBotApi.Repos
 
 		public async Task<bool> IsUserAuthorized(string? commandUserName)
 		{
+			if (string.IsNullOrWhiteSpace(commandUserName)) return false;
 			return await _botDbContext.AuthorisedUsers.AnyAsync(x => x.UserName == commandUserName.ToLower());
 		}
 
