@@ -15,6 +15,7 @@
 		public const string Follow = "/follow";
 		public const string AddBot = "/addbot";
 		public const string RemoveBot = "/removebot";
+		public const string DisableBot = "/disablebot";
 		public const string FailedLogins = "/failedlogins";
 		public const string DisabledIds = "/disabledids";
 		public const string LockedIds = "/lockedids";
