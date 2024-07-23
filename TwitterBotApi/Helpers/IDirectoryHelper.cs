@@ -24,11 +24,57 @@ namespace TwitterBotApi.Helpers
 
 					CopyFilesRecursively(dir.FullName, @$"{parentDirectoryPath}\master\{dir.Name}");
 				}
-				dir.Delete(true);
-				if (!dir.Parent?.EnumerateFiles().Any() ?? false)
+				Thread.Sleep(3000);
+				DeleteFilesRecursively(process.UserDataDirectory);
+				if(!ReferenceEquals(dir.Parent, null))
 				{
-					dir.Parent?.Delete(true);
+					if (!dir.Parent?.EnumerateFiles().Any() ?? false)
+					{
+						DeleteDirectory(dir.Parent.FullName);
+					}
 				}
+			}
+		}
+
+		private void SetAttributesNormal(DirectoryInfo dir)
+		{
+			foreach (var subDir in dir.GetDirectories())
+			{
+				SetAttributesNormal(subDir);
+			}
+			foreach (var file in dir.GetFiles())
+			{
+				file.Attributes = FileAttributes.Normal;
+			}
+		}
+		private void DeleteDirectory(string targetPath)
+		{
+			try
+			{
+				Directory.Delete(targetPath);
+			}
+			catch { }
+		}
+
+
+		private void DeleteFilesRecursively(string targetPath)
+		{
+			foreach (string filePath in Directory.GetFiles(targetPath, "*.*", SearchOption.AllDirectories))
+			{
+				try
+				{
+					File.Delete(filePath);
+				}
+				catch { }
+			}
+
+			foreach (string dirPath in Directory.GetDirectories(targetPath, "*", SearchOption.AllDirectories))
+			{
+				try
+				{
+					Directory.Delete(dirPath);
+				}
+				catch { }
 			}
 		}
 		private void CopyFilesRecursively(string sourcePath, string targetPath)

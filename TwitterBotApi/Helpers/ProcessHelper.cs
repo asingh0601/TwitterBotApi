@@ -25,6 +25,8 @@ namespace TwitterBotApi.Helpers
 			{
 				Process proc = Process.GetProcessById(pid);
 				proc.Kill();
+				proc.WaitForExit();
+				proc.Dispose();
 				return true;
 			}
 			catch (ArgumentException) { return false; }
