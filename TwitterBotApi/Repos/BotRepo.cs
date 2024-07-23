@@ -439,14 +439,14 @@ namespace TwitterBotApi.Repos
 			{
 				SqlConnection conn = new(_botDbContext.ConnectionString);
 				conn.Open();
-				var sqlQuery = $"SELECT ProcessId, Directory FROM SpaceProcessIds WHERE Url = '{spaceUrl}'{(isAdminCommand ? string.Empty : $" AND CommandUserName  = {commandUserName}")}";
+				var sqlQuery = $"SELECT ProcessId, Directory, LoginSuccessful FROM SpaceProcessIds WHERE Url = '{spaceUrl}'{(isAdminCommand ? string.Empty : $" AND CommandUserName  = {commandUserName}")}";
 
 				using SqlCommand command = new(sqlQuery, conn);
 				var result = command.ExecuteReader();
 
 				while (result.Read())
 				{
-					var process = new Process { ProcessId = (int)result["ProcessId"], UserDataDirectory = (string)result["Directory"] };
+					var process = new Process { ProcessId = (int)result["ProcessId"], UserDataDirectory = (string)result["Directory"], LoginSuccessful = (int?)result["LoginSuccessful"] };
 					processes.Add(process);
 				}
 				conn.Close();
@@ -495,14 +495,14 @@ namespace TwitterBotApi.Repos
 			{
 				SqlConnection conn = new(_botDbContext.ConnectionString);
 				conn.Open();
-				var sqlQuery = $"SELECT ProcessId, Directory FROM SpaceProcessIds WHERE ProcessDate < '{DateTime.Now.AddMinutes(-10):yyyyMMdd HH:mm:ss}') AND (Url is null OR Url = '') And ProcessKilled = 0";
+				var sqlQuery = $"SELECT ProcessId, Directory, LoginSuccessful FROM SpaceProcessIds WHERE ProcessDate < '{DateTime.Now.AddMinutes(-10):yyyyMMdd HH:mm:ss}') AND (Url is null OR Url = '') And ProcessKilled = 0";
 
 				using SqlCommand command = new(sqlQuery, conn);
 				var result = command.ExecuteReader();
 
 				while (result.Read())
 				{
-					var process = new Process { ProcessId = (int)result["ProcessId"], UserDataDirectory = (string)result["Directory"] };
+					var process = new Process { ProcessId = (int)result["ProcessId"], UserDataDirectory = (string)result["Directory"], LoginSuccessful = (int?)result["LoginSuccessful"] };
 					processes.Add(process);
 				}
 				conn.Close();
@@ -518,14 +518,14 @@ namespace TwitterBotApi.Repos
 			{
 				SqlConnection conn = new(_botDbContext.ConnectionString);
 				conn.Open();
-				var sqlQuery = $"SELECT ProcessId FROM SpaceProcessIds, Directory WHERE ProcessDate < '{DateTime.Now.AddHours(-1):yyyyMMdd HH:mm:ss}') And ProcessKilled = 0";
+				var sqlQuery = $"SELECT ProcessId FROM SpaceProcessIds, Directory, LoginSuccessful WHERE ProcessDate < '{DateTime.Now.AddHours(-1):yyyyMMdd HH:mm:ss}') And ProcessKilled = 0";
 
 				using SqlCommand command = new(sqlQuery, conn);
 				var result = command.ExecuteReader();
 
 				while (result.Read())
 				{
-					var process = new Process { ProcessId = (int)result["ProcessId"], UserDataDirectory = (string)result["Directory"] };
+					var process = new Process { ProcessId = (int)result["ProcessId"], UserDataDirectory = (string)result["Directory"], LoginSuccessful = (int?)result["LoginSuccessful"] };
 					processes.Add(process);
 				}
 				conn.Close();

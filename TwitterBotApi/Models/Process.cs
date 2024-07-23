@@ -4,5 +4,6 @@
 	{
 		public int ProcessId { get; set; }
 		public required string UserDataDirectory { get; set; }
+		public int? LoginSuccessful { get; set; }
 	}
 }
