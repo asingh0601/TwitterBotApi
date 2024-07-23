@@ -12,7 +12,7 @@
 
 		public async Task SendMessage(long? chatId, string message)
 		{
-			var url = $"{_telegramBaseurl}/sendMessage?chat_id={chatId ?? 0}&text={message}";
+			var url = $"{_telegramBaseurl}/sendMessage?chat_id={chatId ?? 0}&text={message}&parse_mode=html";
 			try
 			{
 				var response = await client.GetAsync(url);

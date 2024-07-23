@@ -1,5 +1,6 @@
 using Hangfire;
 using Hangfire.SqlServer;
+using Microsoft.Extensions.FileProviders;
 using Serilog;
 using TwitterBotApi.Helpers;
 using TwitterBotApi.Repos;
@@ -52,7 +53,12 @@ namespace TwitterBotApi
 				app.UseSwaggerUI();
 			}
 			// Configure the HTTP request pipeline.
-
+			app.UseStaticFiles(new StaticFileOptions()
+			{
+				ServeUnknownFileTypes = true,
+				FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "proxyscript")),
+				RequestPath = new PathString("/proxyscript")
+			});
 			app.UseHttpsRedirection();
 			app.UseHangfireDashboard("/hangfire", new DashboardOptions
 			{

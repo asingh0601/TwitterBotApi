@@ -4,14 +4,14 @@
 	{
 		public const string Message = $"{WelcomeMessage}\n\n{UserCommands}";
 		
-		private const string WelcomeMessage = $"Welcome to Nocturnal Twitter Bot!";
-		private const string UserCommands = $"Available Commands:\n{Commands.LikeTweet} <TweetUrl>\n{Commands.Retweet} <TweetUrl>" +
-			$"\n{Commands.JoinSpace} <SpaceUrl>\n{Commands.RJoinSpace} <SpaceUrl> -anonymous -timeoffset:20 (switches are optional, offset is in seconds)"+
-			$"\n{Commands.LeaveSpace} <SpaceUrl>\n{Commands.Follow} <ProfileUrl>";
-		public const string AdminCommands = $"\n\nAdmin Commands:\n{Commands.AddUser} <TelegramUserName>\n{Commands.RemoveUser} <TelegramUserName>" +
-			$"\n{Commands.PromoteUser} <TelegramUserName>\n{Commands.DemoteUser} <TelegramUserName>" +
-			$"\n{Commands.AddBot} <UserName> <EmailId> <Password>\n{Commands.RemoveBot} <UserName>" +
-			$"\n{Commands.ReEnableId} <BotUserName>(use activate -all to activate all ids)\n{Commands.FailedLogins}"+
-			$"\n{Commands.BotStatistics}\n{Commands.KillSwitch}";
+		private const string WelcomeMessage = $"<b>Welcome to Nocturnal Twitter Bot!</b>";
+		private const string UserCommands = $"<b>Available Commands:</b>\n{Commands.LikeRetweet} <i>TweetUrl</i>\n{Commands.JoinLaugh} <i>SpaceUrl</i>" +
+			$"\n{Commands.LikeRetweet} <i>TweetUrl</i>\n{Commands.RJoinSpace} <i>SpaceUrl</i> -anonymous -timeoffset:20 <i>(switches are optional, offset is in seconds)</i>" +
+			$"\n{Commands.LeaveSpace} <i>SpaceUrl</i>\n{Commands.Follow} <i>ProfileUrl</i>";
+		public const string AdminCommands = $"\n\n<b>Admin Commands:</b>\n{Commands.AddUser} <i>TelegramUserName</i>\n{Commands.RemoveUser} <i>TelegramUserName</i>" +
+			$"\n{Commands.PromoteUser} <i>TelegramUserName</i>\n{Commands.DemoteUser} <i>TelegramUserName</i>" +
+			$"\n{Commands.AddBot} <i>UserName</i> <i>EmailId</i> <i>Password</i>\n{Commands.RemoveBot} <i>UserName</i>" +
+			$"\n{Commands.ReEnableId} <i>BotUserName</i> (<i>switch</i>: [-all -> <i>activate all ids</i>] [[-disabled -> <i>enable a disabled id</i>]] [-suspended -> <i>enable a suspended id</i>])\n{Commands.FailedLogins}"+
+			$"\n{Commands.LockedIds}\n{Commands.SuspendedIds}\n{Commands.BotStatistics}\n{Commands.KillSwitch}";
 	}
 }

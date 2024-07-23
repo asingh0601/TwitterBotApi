@@ -6,33 +6,35 @@ namespace TwitterBotApi.Repos
 {
 	public interface IBotRepo
 	{
-		Task<bool> IsUserAuthorized(string? commandUserName);
-		bool IsAdmin(string? commandUserName);
-		Task<string?> AddUser(string? commandUserName, string username);
-		Task<string?> RemoveUser(string? commandUserName, string username);
-		Task<string?> PromoteUser(string? commandUserName, string username);
-		Task<string?> DemoteUser(string? commandUserName, string username);
-		Task AddUpdateProcessStatus(long? updateId, long? messageId, string? userName, string? message);
+		Task<bool> IsUserAuthorized(string commandUserName);
+		bool IsAdmin(string commandUserName);
+		Task<string> AddUser(string commandUserName, string username);
+		Task<string> RemoveUser(string commandUserName, string username);
+		Task<string> PromoteUser(string commandUserName, string username);
+		Task<string> DemoteUser(string commandUserName, string username);
+		Task AddUpdateProcessStatus(long? updateId, long? messageId, string userName, string message);
 		bool IsUpdateProcessed(long? updateId, long? messageId);
-		Task<string?> AddBot(string? commandUserName, string? userName, string? emailId, string? password);
-		Task<string?> RemoveBot(string? commandUserName, string? username);
-		Task<string?> GetFailedLogins(string? commandUserName);
-		string ReEnableId(string? commandUserName, string? userName);
-		string ReEnableAllIds(string? commandUserName);
-		List<int>? GetProcessIds(string? commandUserName, string? spaceUrl);
+		Task<string> AddBot(string commandUserName, string userName, string emailId, string password);
+		Task<string> RemoveBot(string commandUserName, string username);
+		Task<string> GetFailedLogins(string commandUserName);
+		Task<string> GetDisabledIds(string commandUserName);
+		Task<string> GetLockedIds(string commandUserName);
+		Task<string> GetSuspendedIds(string commandUserName);
+		string ActivateIds(string commandUserName, List<string> userNames, List<string>? switches);
+		List<int>? GetProcessIds(string commandUserName, string spaceUrl);
 		void UpdateKilledProcesses(List<int> processIds);
 		void DeleteOldProcessIdEntries();
 		void DeleteOldWebhookUpdateEntries();
 		List<int> GetOrphanProcessesIds();
 		List<int> GetOldProcessesIds();
-		string GetBotStatistics(string? commandUserName);
+		string GetBotStatistics(string commandUserName);
 	}
 	public class BotRepo(BotDbContext botDbContext, ILogger<BotRepo> logger) : IBotRepo
 	{
 		private readonly BotDbContext _botDbContext = botDbContext;
 		private readonly ILogger<BotRepo> _logger = logger;
 
-		public async Task<string?> AddUser(string? commandUserName, string username)
+		public async Task<string> AddUser(string commandUserName, string username)
 		{
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			if (commandUserType < 1)
@@ -55,8 +57,13 @@ namespace TwitterBotApi.Repos
 			}
 		}
 
-		public async Task<string?> RemoveUser(string? commandUserName, string username)
+		public async Task<string> RemoveUser(string commandUserName, string username)
 		{
+			if (string.Equals(commandUserName, username, StringComparison.InvariantCultureIgnoreCase))
+			{
+				_logger.LogInformation($"User [{commandUserName}] cannot remove self id.");
+				return "You cannot remove yourself.";
+			}
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			if (commandUserType < 1)
 			{
@@ -78,8 +85,13 @@ namespace TwitterBotApi.Repos
 			}
 		}
 
-		public async Task<string?> PromoteUser(string? commandUserName, string username)
+		public async Task<string> PromoteUser(string commandUserName, string username)
 		{
+			if (string.Equals(commandUserName, username, StringComparison.InvariantCultureIgnoreCase))
+			{
+				_logger.LogInformation($"User [{commandUserName}] cannot promote self id.");
+				return "You cannot promote yourself.";
+			}
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			var existingUser = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == username.ToLower());
 			if (existingUser is not null)
@@ -109,8 +121,13 @@ namespace TwitterBotApi.Repos
 			}
 		}
 
-		public async Task<string?> DemoteUser(string? commandUserName, string username)
+		public async Task<string> DemoteUser(string commandUserName, string username)
 		{
+			if (string.Equals(commandUserName, username, StringComparison.InvariantCultureIgnoreCase))
+			{
+				_logger.LogInformation($"User [{commandUserName}] cannot demote self id.");
+				return "You cannot demote yourself.";
+			}
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			var existingUser = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == username.ToLower());
 			if (existingUser is not null)
@@ -140,13 +157,13 @@ namespace TwitterBotApi.Repos
 			}
 		}
 
-		public async Task<bool> IsUserAuthorized(string? commandUserName)
+		public async Task<bool> IsUserAuthorized(string commandUserName)
 		{
 			if (string.IsNullOrWhiteSpace(commandUserName)) return false;
 			return await _botDbContext.AuthorisedUsers.AnyAsync(x => x.UserName == commandUserName.ToLower());
 		}
 
-		public async Task AddUpdateProcessStatus(long? updateId, long? messageId, string? userName, string? message)
+		public async Task AddUpdateProcessStatus(long? updateId, long? messageId, string userName, string message)
 		{
 			await _botDbContext.ProcessedUpdates.AddAsync(new ProcessedUpdate { UpdateId = updateId ?? 0, ProcessingDate = DateTime.Now, MessageId = messageId ?? 0, UserName = userName, Message = message });
 			await _botDbContext.SaveChangesAsync();
@@ -161,7 +178,7 @@ namespace TwitterBotApi.Repos
 			return false;
 		}
 
-		public async Task<string?> AddBot(string? commandUserName, string? userName, string? emailId, string? password)
+		public async Task<string> AddBot(string commandUserName, string userName, string emailId, string password)
 		{
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			if (commandUserType < 1)
@@ -172,7 +189,16 @@ namespace TwitterBotApi.Repos
 			var existingBot = _botDbContext.BotDetails.FirstOrDefault(u => u.UserName.ToLower() == userName.ToLower());
 			if (existingBot is null)
 			{
-				await _botDbContext.BotDetails.AddAsync(new BotDetails { UserName = userName, EmailId = emailId, Password = password, LoginFailure = 0 });
+				await _botDbContext.BotDetails.AddAsync(new BotDetails
+				{
+					UserName = userName,
+					EmailId = emailId,
+					Password = password,
+					LoginFailure = 0,
+					IdDisabled = 0,
+					IdLocked = 0,
+					IdSuspended = 0,
+				});
 				await _botDbContext.SaveChangesAsync();
 				_logger.LogInformation($"Bot [{userName}] is added. Command By: [{commandUserName}]");
 				return $"Bot [{userName}] is added.";
@@ -184,7 +210,7 @@ namespace TwitterBotApi.Repos
 			}
 		}
 
-		public async Task<string?> RemoveBot(string? commandUserName, string? username)
+		public async Task<string> RemoveBot(string commandUserName, string username)
 		{
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			if (commandUserType < 1)
@@ -216,7 +242,7 @@ namespace TwitterBotApi.Repos
 				_ => string.Empty,
 			};
 		}
-		public async Task<string?> GetFailedLogins(string? commandUserName)
+		public async Task<string> GetFailedLogins(string commandUserName)
 		{
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			if (commandUserType < 1)
@@ -224,7 +250,7 @@ namespace TwitterBotApi.Repos
 				_logger.LogInformation($"[{commandUserName}] is not authorised to view failed logins.");
 				return "You are not authorised to view failed logins.";
 			}
-			var botNames = await _botDbContext.BotDetails.Where(b => b.LoginFailure == 1).Select(b => b.UserName).ToListAsync();
+			var botNames = await _botDbContext.BotDetails.Where(b => b.LoginFailure >= 3).Select(b => b.UserName).ToListAsync();
 			var result = string.Join("\n", botNames);
 			if (string.IsNullOrWhiteSpace(result))
 			{
@@ -232,42 +258,128 @@ namespace TwitterBotApi.Repos
 				return "There are no failed Logins.";
 			}
 			_logger.LogInformation($"Logins are failing for: {result}. Command By: [{commandUserName}]");
-			return $"Logins are failing for {botNames.Count} bots:\n{result}";
+			return $"<b>Logins are failing for {botNames.Count} bots:</b>\n{result}";
 		}
 
-		public string ReEnableId(string? commandUserName, string? userName)
+		public async Task<string> GetDisabledIds(string commandUserName)
 		{
+			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
+			if (commandUserType < 1)
+			{
+				_logger.LogInformation($"[{commandUserName}] is not authorised to view ids that require email verification.");
+				return "You are not authorised to view ids that require email verification.";
+			}
+			var botNames = await _botDbContext.BotDetails.Where(b => b.IdDisabled == 1).Select(b => b.UserName).ToListAsync();
+			var result = string.Join("\n", botNames);
+			if (string.IsNullOrWhiteSpace(result))
+			{
+				_logger.LogInformation($"There are no ids that require email verification. Command By: [{commandUserName}]");
+				return "There are no ids that require email verification.";
+			}
+			_logger.LogInformation($"Email verification is required for: {result}. Command By: [{commandUserName}]");
+			return $"<b>Email verification is required for {botNames.Count} bots:</b>\n{result}";
+		}
+		public async Task<string> GetSuspendedIds(string commandUserName)
+		{
+			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
+			if (commandUserType < 1)
+			{
+				_logger.LogInformation($"[{commandUserName}] is not authorised to view suspended ids.");
+				return "You are not authorised to view suspended ids.";
+			}
+			var botNames = await _botDbContext.BotDetails.Where(b => b.IdSuspended == 1).Select(b => b.UserName).ToListAsync();
+			var result = string.Join("\n", botNames);
+			if (string.IsNullOrWhiteSpace(result))
+			{
+				_logger.LogInformation($"There are no suspended ids. Command By: [{commandUserName}]");
+				return "There are no suspended ids.";
+			}
+			_logger.LogInformation($"Following Ids are suspended: {result}. Command By: [{commandUserName}]");
+			return $"<b>Total {botNames.Count} ids are suspended:</b>\n{result}";
+		}
+
+		public async Task<string> GetLockedIds(string commandUserName)
+		{
+			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
+			if (commandUserType < 1)
+			{
+				_logger.LogInformation($"[{commandUserName}] is not authorised to view locked ids.");
+				return "You are not authorised to view locked ids.";
+			}
+			var botNames = await _botDbContext.BotDetails.Where(b => b.IdLocked == 1).Select(b => b.UserName).ToListAsync();
+			var result = string.Join("\n", botNames);
+			if (string.IsNullOrWhiteSpace(result))
+			{
+				_logger.LogInformation($"There are no locked ids. Command By: [{commandUserName}]");
+				return "There are no locked ids.";
+			}
+			_logger.LogInformation($"Following Ids are locked: {result}. Command By: [{commandUserName}]");
+			return $"<b>Total {botNames.Count} ids are locked:</b>\n{result}";
+		}
+
+		public string ActivateIds(string commandUserName, List<string> userNames, List<string>? switches)
+		{
+			var allSwitch = switches?.Contains("-all") ?? false;
+			var unSuspend = switches?.Contains("-suspended") ?? false;
+			var disabled = switches?.Contains("-disabled") ?? false;
+
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			if (commandUserType < 1)
 			{
 				_logger.LogInformation($"[{commandUserName}] is not authorised to activate ids.");
 				return "You are not authorised activate ids.";
 			}
-			var bot = _botDbContext.BotDetails.FirstOrDefault(u => u.UserName.ToLower() == userName.ToLower());
-			if (bot is not null)
+			var botsQueryable = _botDbContext.BotDetails.AsQueryable();
+
+			if (!allSwitch)
 			{
-				bot.LoginFailure = 0;
-				_logger.LogInformation($"Bot [{userName}] is re-enabled. Command By: [{commandUserName}]");
-				return $"Bot [{userName}] is re-enabled.";
+				botsQueryable = botsQueryable.Where(u => userNames.Contains(u.UserName.ToLower()));
 			}
-			_logger.LogInformation($"Bot [{userName}] does not exist. Command By: [{commandUserName}]");
-			return $"Bot [{userName}] does not exist.";
+
+			var bots = botsQueryable.ToList();
+			var result = string.Join("\n", bots.Select(b => b.UserName));
+			foreach (var bot in bots)
+			{
+				if (bot is not null)
+				{
+					bot.LoginFailure = 0;
+					bot.IdLocked = 0;
+
+					if (unSuspend)
+					{
+						bot.IdSuspended = 0;
+					}
+					if (disabled)
+					{
+						bot.IdDisabled = 0;
+					}
+					if (userNames.Count > 1)
+					{
+						_logger.LogInformation($"Following bots are re-activated:\n{result}\nCommand By: [{commandUserName}]");
+						return $"Following bots are re-activated:\n{result}";
+					}
+					else
+					{
+						_logger.LogInformation($"Bot [{userNames[0]}] is re-activated. Command By: [{commandUserName}]");
+						return $"Bot [{userNames[0]}] is re-activated.";
+					}
+				}
+			}
+			_botDbContext.SaveChanges();
+
+			if(userNames.Count == 1)
+			{
+				_logger.LogInformation($"Bot [{userNames[0]}] does not exist. Command By: [{commandUserName}]");
+				return $"Bot [{userNames[0]}] does not exist.";
+			}
+			else
+			{
+				_logger.LogInformation($"None of the bots {result} could be found. Command By: [{commandUserName}]");
+				return $"None of the bots {result} could be found";
+			}
 		}
 
-		public string ReEnableAllIds(string? commandUserName)
-		{
-			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
-			if (commandUserType < 1)
-			{
-				_logger.LogInformation($"[{commandUserName}] is not authorised to activate ids.");
-				return "You are not authorised activate ids.";
-			}
-			var bot = _botDbContext.BotDetails.ForEachAsync(b => b.LoginFailure = 0);
-			_logger.LogInformation($"All bots are re-enabled. Command By: [{commandUserName}]");
-			return $"All bots are re-enabled.";
-		}
-
-		public List<int>? GetProcessIds(string? commandUserName, string? spaceUrl)
+		public List<int>? GetProcessIds(string commandUserName, string spaceUrl)
 		{
 			var isAdminCommand = false;
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
@@ -384,14 +496,14 @@ namespace TwitterBotApi.Repos
 			catch (Exception ex) { _logger.LogError(ex, ex.Message); }
 		}
 
-		public bool IsAdmin(string? commandUserName)
+		public bool IsAdmin(string commandUserName)
 		{
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			if (commandUserType < 1) return false;
 			return true;
 		}
 
-		public string GetBotStatistics(string? commandUserName)
+		public string GetBotStatistics(string commandUserName)
 		{
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			if (commandUserType < 1)
@@ -401,9 +513,12 @@ namespace TwitterBotApi.Repos
 			}
 			var botsQueryable = _botDbContext.BotDetails.AsQueryable();
 			var totalCount = botsQueryable.Count();
-			var activeBotsCount = botsQueryable.Count(b => b.LoginFailure == 0);
-			var inactiveBotsCount = botsQueryable.Count(b => b.LoginFailure == 1);
-			return $"Total Bots: {totalCount}\nActive Bots: {activeBotsCount}\nInactive Bots: {inactiveBotsCount}";
+			var activeBotsCount = botsQueryable.Count(b => b.LoginFailure < 3 && b.IdLocked == 0 && b.IdSuspended == 0 && b.IdDisabled == 0);
+			var disabledCount = botsQueryable.Count(b => b.IdDisabled == 1);
+			var inactiveBotsCount = botsQueryable.Count(b => b.LoginFailure >= 3);
+			var lockedBotsCount = botsQueryable.Count(b => b.IdLocked == 1);
+			var suspendedBotsCount = botsQueryable.Count(b => b.IdSuspended == 1);
+			return $"<b>Total Bots: {totalCount}</b>\nActive Bots: {activeBotsCount}\nDisabled Bots: {disabledCount}\nLogin Failures: {inactiveBotsCount}\nLocked Bots: {lockedBotsCount}\nSuspended Bots: {suspendedBotsCount}";
 		}
 	}
 }
