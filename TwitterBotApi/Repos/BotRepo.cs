@@ -354,10 +354,32 @@ namespace TwitterBotApi.Repos
 					{
 						bot.IdDisabled = 0;
 					}
-					if (userNames.Count > 1)
+				}
+			}
+			_botDbContext.SaveChanges();
+			if (userNames.Count > 1)
+			{
+				_logger.LogInformation($"Following bots are re-activated:\n{result}\nCommand By: [{commandUserName}]");
+				return $"Following bots are re-activated:\n{result}";
+			}
+			else
+			{
+				if (allSwitch)
+				{
+					_logger.LogInformation($"All bots are re-activated. Command By: [{commandUserName}]");
+					return $"All bots are re-activated.";
+				}
+				else
+				{
+					if (userNames.Count == 1)
 					{
-						_logger.LogInformation($"Following bots are re-activated:\n{result}\nCommand By: [{commandUserName}]");
-						return $"Following bots are re-activated:\n{result}";
+						_logger.LogInformation($"Bot [{userNames[0]}] does not exist. Command By: [{commandUserName}]");
+						return $"Bot [{userNames[0]}] does not exist.";
+					}
+					else if(userNames.Count == 0)
+					{
+						_logger.LogInformation($"None of the bots {result} could be found. Command By: [{commandUserName}]");
+						return $"None of the bots {result} could be found";
 					}
 					else
 					{
@@ -365,18 +387,7 @@ namespace TwitterBotApi.Repos
 						return $"Bot [{userNames[0]}] is re-activated.";
 					}
 				}
-			}
-			_botDbContext.SaveChanges();
 
-			if (userNames.Count == 1)
-			{
-				_logger.LogInformation($"Bot [{userNames[0]}] does not exist. Command By: [{commandUserName}]");
-				return $"Bot [{userNames[0]}] does not exist.";
-			}
-			else
-			{
-				_logger.LogInformation($"None of the bots {result} could be found. Command By: [{commandUserName}]");
-				return $"None of the bots {result} could be found";
 			}
 		}
 
