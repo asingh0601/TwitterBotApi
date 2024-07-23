@@ -322,6 +322,7 @@ namespace TwitterBotApi.Repos
 		{
 			var allSwitch = switches?.Contains("-all") ?? false;
 			var unSuspend = switches?.Contains("-suspended") ?? false;
+			var unLock = switches?.Contains("-locked") ?? false;
 			var disabled = switches?.Contains("-disabled") ?? false;
 
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
@@ -344,7 +345,10 @@ namespace TwitterBotApi.Repos
 				if (bot is not null)
 				{
 					bot.LoginFailure = 0;
-					bot.IdLocked = 0;
+					if (unLock)
+					{
+						bot.IdLocked = 0;
+					}
 
 					if (unSuspend)
 					{

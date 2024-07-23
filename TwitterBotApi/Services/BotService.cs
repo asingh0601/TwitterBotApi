@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO;
-using System.Management;
-using System.Runtime.Versioning;
+﻿using System.Runtime.Versioning;
 using TwitterBotApi.Helpers;
 using TwitterBotApi.Models;
 using TwitterBotApi.Repos;
@@ -68,7 +65,8 @@ namespace TwitterBotApi.Services
 			#region botactions
 			else if (argument.Contains(Commands.LikeRetweet))
 			{
-				_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument);
+				await SendResultResponse(webhookUpdate, "Like and retweet bot is disabled for now.");
+				//_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument);
 			}
 			else if (argument.Contains(Commands.JoinLaugh))
 			{
@@ -90,6 +88,11 @@ namespace TwitterBotApi.Services
 				}
 			}
 			else if (argument.Contains(Commands.Follow))
+			{
+				await SendResultResponse(webhookUpdate, "Follow bot is disabled for now.");
+				//_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument);
+			}
+			else if (argument.Contains(Commands.ReportSpace))
 			{
 				_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument);
 			}
@@ -178,6 +181,7 @@ namespace TwitterBotApi.Services
 			{
 				_processHelper.KillAllProcessesByName("chromedriver");
 				_processHelper.KillAllProcessesByName("chrome");
+				_processHelper.KillAllProcessesByName("TwitterBot");
 				return "All chrome drivers and chrome instances have been killed.";
 			}
 			catch (Exception)

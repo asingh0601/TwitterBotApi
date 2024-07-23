@@ -10,6 +10,7 @@
 		public const string LikeRetweet = "/likeretweet";
 		public const string JoinSpace = "/join";
 		public const string RJoinSpace = "/rjoin";
+		public const string ReportSpace = "/reportspace";
 		public const string JoinLaugh = "/joinlaugh";
 		public const string LeaveSpace = "/leave";
 		public const string Follow = "/follow";
