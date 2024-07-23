@@ -206,6 +206,10 @@ namespace TwitterBotApi.Repos
 			{
 				_botDbContext.BotDetails.Remove(existingBot);
 				await _botDbContext.SaveChangesAsync();
+				if (Directory.Exists(@$"C:\TwitterBotChromeProfiles\master\{username}"))
+				{
+					Directory.Delete(@$"C:\TwitterBotChromeProfiles\master\{username}", true);
+				}
 				_logger.LogInformation($"Bot [{username}] is removed. Command By: [{commandUserName}]");
 				return $"Bot [{username}] is removed.";
 			}
