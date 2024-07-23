@@ -22,6 +22,7 @@ namespace TwitterBotApi
 			builder.Services.AddRouting().AddControllers().AddNewtonsoftJson();
 			builder.Services.AddDbContext<BotDbContext>(ServiceLifetime.Transient);
 			builder.Services.AddScoped<IProcessHelper, ProcessHelper>();
+			builder.Services.AddScoped<IDirectoryHelper, DirectoryHelper>();
 			builder.Services.AddScoped<IBotRepo, BotRepo>();
 			builder.Services.AddScoped<IBotHelper, BotHelper>();
 			builder.Services.AddScoped<ITelegramHelper, TelegramHelper>();

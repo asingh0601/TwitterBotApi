@@ -22,12 +22,12 @@ namespace TwitterBotApi.Repos
 		Task<string> GetLockedIds(string commandUserName);
 		Task<string> GetSuspendedIds(string commandUserName);
 		string ActivateIds(string commandUserName, List<string> userNames, List<string>? switches);
-		List<int>? GetProcessIds(string commandUserName, string spaceUrl);
+		List<Process>? GetProcesses(string commandUserName, string spaceUrl);
 		void UpdateKilledProcesses(List<int> processIds);
 		void DeleteOldProcessIdEntries();
 		void DeleteOldWebhookUpdateEntries();
-		List<int> GetOrphanProcessesIds();
-		List<int> GetOldProcessesIds();
+		List<Process>? GetOrphanProcesses();
+		List<Process>? GetOldProcesses();
 		string GetBotStatistics(string commandUserName);
 	}
 	public class BotRepo(BotDbContext botDbContext, ILogger<BotRepo> logger) : IBotRepo
@@ -429,24 +429,25 @@ namespace TwitterBotApi.Repos
 		}
 
 
-		public List<int>? GetProcessIds(string commandUserName, string spaceUrl)
+		public List<Process>? GetProcesses(string commandUserName, string spaceUrl)
 		{
 			var isAdminCommand = false;
 			var commandUserType = _botDbContext.AuthorisedUsers.FirstOrDefault(u => u.UserName.ToLower() == commandUserName.ToLower())?.UserType ?? 0;
 			if (commandUserType > 0) isAdminCommand = true;
-			List<int>? processIds = [];
+			List<Process>? processes = [];
 			try
 			{
 				SqlConnection conn = new(_botDbContext.ConnectionString);
 				conn.Open();
-				var sqlQuery = $"SELECT ProcessId FROM SpaceProcessIds WHERE Url = '{spaceUrl}'{(isAdminCommand ? string.Empty : $" AND CommandUserName  = {commandUserName}")}";
+				var sqlQuery = $"SELECT ProcessId, Directory FROM SpaceProcessIds WHERE Url = '{spaceUrl}'{(isAdminCommand ? string.Empty : $" AND CommandUserName  = {commandUserName}")}";
 
 				using SqlCommand command = new(sqlQuery, conn);
 				var result = command.ExecuteReader();
 
 				while (result.Read())
 				{
-					processIds.Add((int)result["ProcessId"]);
+					var process = new Process { ProcessId = (int)result["ProcessId"], UserDataDirectory = (string)result["Directory"] };
+					processes.Add(process);
 				}
 				conn.Close();
 			}
@@ -454,7 +455,7 @@ namespace TwitterBotApi.Repos
 			{
 				_logger.LogError(ex, ex.Message);
 			}
-			return processIds;
+			return processes;
 		}
 
 		public void DeleteOldProcessIdEntries()
@@ -487,48 +488,50 @@ namespace TwitterBotApi.Repos
 			catch (Exception ex) { _logger.LogError(ex, ex.Message); }
 		}
 
-		public List<int> GetOrphanProcessesIds()
+		public List<Process>? GetOrphanProcesses()
 		{
-			List<int>? processIds = [];
+			List<Process>? processes = [];
 			try
 			{
 				SqlConnection conn = new(_botDbContext.ConnectionString);
 				conn.Open();
-				var sqlQuery = $"SELECT ProcessId FROM SpaceProcessIds WHERE ProcessDate < '{DateTime.Now.AddMinutes(-10):yyyyMMdd HH:mm:ss}') AND (Url is null OR Url = '') And ProcessKilled = 0";
+				var sqlQuery = $"SELECT ProcessId, Directory FROM SpaceProcessIds WHERE ProcessDate < '{DateTime.Now.AddMinutes(-10):yyyyMMdd HH:mm:ss}') AND (Url is null OR Url = '') And ProcessKilled = 0";
 
 				using SqlCommand command = new(sqlQuery, conn);
 				var result = command.ExecuteReader();
 
 				while (result.Read())
 				{
-					processIds.Add((int)result["ProcessId"]);
+					var process = new Process { ProcessId = (int)result["ProcessId"], UserDataDirectory = (string)result["Directory"] };
+					processes.Add(process);
 				}
 				conn.Close();
 			}
 			catch (Exception ex) { _logger.LogError(ex, ex.Message); }
-			return processIds;
+			return processes;
 		}
 
-		public List<int> GetOldProcessesIds()
+		public List<Process>? GetOldProcesses()
 		{
-			List<int>? processIds = [];
+			List<Process>? processes = [];
 			try
 			{
 				SqlConnection conn = new(_botDbContext.ConnectionString);
 				conn.Open();
-				var sqlQuery = $"SELECT ProcessId FROM SpaceProcessIds WHERE ProcessDate < '{DateTime.Now.AddHours(-1):yyyyMMdd HH:mm:ss}') And ProcessKilled = 0";
+				var sqlQuery = $"SELECT ProcessId FROM SpaceProcessIds, Directory WHERE ProcessDate < '{DateTime.Now.AddHours(-1):yyyyMMdd HH:mm:ss}') And ProcessKilled = 0";
 
 				using SqlCommand command = new(sqlQuery, conn);
 				var result = command.ExecuteReader();
 
 				while (result.Read())
 				{
-					processIds.Add((int)result["ProcessId"]);
+					var process = new Process { ProcessId = (int)result["ProcessId"], UserDataDirectory = (string)result["Directory"] };
+					processes.Add(process);
 				}
 				conn.Close();
 			}
 			catch (Exception ex) { _logger.LogError(ex, ex.Message); }
-			return processIds;
+			return processes;
 		}
 
 		public void UpdateKilledProcesses(List<int> processIds)

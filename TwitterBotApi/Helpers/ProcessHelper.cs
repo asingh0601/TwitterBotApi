@@ -1,8 +1,6 @@
-﻿using Hangfire.Server;
-using System.Diagnostics;
-using System.Management;
+﻿using System.Management;
 using System.Runtime.Versioning;
-using TwitterBotApi.Models;
+using Process = System.Diagnostics.Process;
 
 namespace TwitterBotApi.Helpers
 {

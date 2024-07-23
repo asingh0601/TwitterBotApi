@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using System.Management;
 using System.Runtime.Versioning;
 using TwitterBotApi.Helpers;
@@ -12,13 +13,14 @@ namespace TwitterBotApi.Services
 		Task<bool> IsAuthorizedUser(WebHookUpdate webhookUpdate);
 		Task ProcessUpdate(WebHookUpdate webhookUpdate);
 	}
-	public class BotService(IBotRepo botRepo, IBotHelper botHelper, IArgumentHelper argumentHelper, ITelegramHelper telegramHelper, IProcessHelper processHelper) : IBotService
+	public class BotService(IBotRepo botRepo, IBotHelper botHelper, IArgumentHelper argumentHelper, ITelegramHelper telegramHelper, IProcessHelper processHelper, IDirectoryHelper directoryHelper) : IBotService
 	{
 		private readonly IBotRepo _botRepo = botRepo;
 		private readonly IBotHelper _botHelper = botHelper;
 		private readonly IArgumentHelper _argumentHelper = argumentHelper;
 		private readonly ITelegramHelper _telegramHelper = telegramHelper;
 		private readonly IProcessHelper _processHelper = processHelper;
+		private readonly IDirectoryHelper _directoryHelper = directoryHelper;
 
 		public async Task<bool> IsAuthorizedUser(WebHookUpdate webhookUpdate)
 		{
@@ -152,13 +154,14 @@ namespace TwitterBotApi.Services
 		[SupportedOSPlatform("windows")]
 		private void LeaveTwitterSpace(string commandUserName, string spaceUrl)
 		{
-			var processIds = _botRepo.GetProcessIds(commandUserName, spaceUrl);
+			var processes = _botRepo.GetProcesses(commandUserName, spaceUrl);
 			List<int>? killedProcessIds = [];
-			foreach (var pid in processIds ?? [])
+			foreach (var process in processes ?? [])
 			{
-				if (_processHelper.KillProcessAndChildren(pid))
+				if (_processHelper.KillProcessAndChildren(process.ProcessId))
 				{
-					killedProcessIds.Add(pid);
+					killedProcessIds.Add(process.ProcessId);
+					_directoryHelper.DeleteDirectoryAndEmptyParent(process);
 				}
 			}
 			_botRepo.UpdateKilledProcesses(killedProcessIds);
