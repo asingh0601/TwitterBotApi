@@ -31,116 +31,145 @@ namespace TwitterBotApi.Services
 
 		public async Task ProcessUpdate(WebHookUpdate webhookUpdate)
 		{
-			var argument = _argumentHelper.GetArguments(webhookUpdate);
+			var commandUserName = webhookUpdate?.Message?.From?.Username ?? string.Empty;
+			var userMessageString = _argumentHelper.GetArguments(webhookUpdate ?? new());
+			var command = userMessageString.Split(" ").FirstOrDefault() ?? string.Empty;
+			var arguments = userMessageString.Split(" ").Skip(1).FirstOrDefault(u => !u.Contains('-'))?.Split(',').Select(u => u.ToLower()).ToList() ?? [];
+			if(!arguments.Any()) { arguments.Add(string.Empty); }
+			var switches = userMessageString.Split(" ").Skip(1).Where(a => a.Contains('-')).Select(a => a.ToLower()).ToList();
 
 			if (_botRepo.IsUpdateProcessed(webhookUpdate?.UpdateId, webhookUpdate?.Message?.MessageId))
 			{
 				return;
 			}
 
-			if (argument.Contains(Commands.Start))
+			if (userMessageString.Contains(Commands.Start))
 			{
 				await _telegramHelper.SendMessage(webhookUpdate?.Message?.Chat?.Id, $"{WelcomeText.Message}{(_botRepo.IsAdmin(webhookUpdate?.Message?.From?.Username ?? string.Empty) ? WelcomeText.AdminCommands : string.Empty)}");
 			}
 
 			#region usermanagement
-			else if (argument.Contains(Commands.AddUser))
+			else if (command.Equals(Commands.AddUser))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.AddUser(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
+				await SendResultResponse(webhookUpdate, await _botRepo.AddUser(commandUserName, arguments[0]));
 			}
-			else if (argument.Contains(Commands.RemoveUser))
+			else if (command.Equals(Commands.RemoveUser))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.RemoveUser(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
+				await SendResultResponse(webhookUpdate, await _botRepo.RemoveUser(commandUserName, arguments[0]));
 			}
-			else if (argument.Contains(Commands.PromoteUser))
+			else if (command.Equals(Commands.PromoteUser))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.PromoteUser(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
+				await SendResultResponse(webhookUpdate, await _botRepo.PromoteUser(commandUserName, arguments[0]));
 			}
-			else if (argument.Contains(Commands.DemoteUser))
+			else if (command.Equals(Commands.DemoteUser))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.DemoteUser(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
+				await SendResultResponse(webhookUpdate, await _botRepo.DemoteUser(commandUserName, arguments[0]));
 			}
 			#endregion
 
 			#region botactions
-			else if (argument.Contains(Commands.LikeRetweet))
+			else if (command.Equals(Commands.LikeRetweet))
 			{
-				await SendResultResponse(webhookUpdate, "Like and retweet bot is disabled for now.");
-				//_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument);
+				var commandDisabled = true;
+				if(arguments.Any(a => a == "-bypass"))
+				{
+					commandDisabled = false;
+				}
+				if (commandDisabled)
+				{
+					await SendResultResponse(webhookUpdate, "Like and retweet bot is disabled for now.");
+				}
+				else
+				{
+					_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, arguments[0]);
+				}
 			}
-			else if (argument.Contains(Commands.JoinLaugh))
+			else if (command.Equals(Commands.JoinLaugh))
 			{
-				_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument);
+				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, arguments[0]);
 			}
-			else if (argument.Contains(Commands.JoinSpace))
+			else if (command.Equals(Commands.JoinSpace))
 			{
-				_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument);
+				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, arguments[0]);
 			}
-			else if (argument.Contains(Commands.RJoinSpace))
+			else if (command.Equals(Commands.RJoinSpace))
 			{
-				_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument);
+				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, arguments[0]);
 			}
-			else if (argument.Contains(Commands.LeaveSpace))
+			else if (command.Equals(Commands.LeaveSpace))
 			{
 				if (OperatingSystem.IsWindows())
 				{
-					LeaveTwitterSpace(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]);
+					LeaveTwitterSpace(commandUserName, arguments[0]);
 				}
 			}
-			else if (argument.Contains(Commands.Follow))
+			else if (command.Equals(Commands.Follow))
 			{
-				await SendResultResponse(webhookUpdate, "Follow bot is disabled for now.");
-				//_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument);
+				var commandDisabled = true;
+				if (arguments.Any(a => a == "-bypass"))
+				{
+					commandDisabled = false;
+				}
+				if (commandDisabled)
+				{
+					await SendResultResponse(webhookUpdate, "Follow bot is disabled for now.");
+				}
+				else
+				{
+					_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, arguments[0]);
+				}
 			}
-			else if (argument.Contains(Commands.ReportSpace))
+			else if (command.Equals(Commands.ReportSpace))
 			{
-				_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument);
+				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, arguments[0]);
 			}
 			#endregion
 
 			#region botmanagement
-			else if (argument.Contains(Commands.AddBot))
+			else if (command.Equals(Commands.AddBot))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.AddBot(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1], argument.Split(' ')[2], argument.Split(' ')[3]));
+				var userName = arguments.FirstOrDefault() ?? string.Empty;
+				var emailId = arguments.Skip(1).FirstOrDefault() ?? string.Empty;
+				var password = arguments.Skip(2).FirstOrDefault() ?? string.Empty;	
+				await SendResultResponse(webhookUpdate, await _botRepo.AddBot(commandUserName, userName, emailId, password));
 			}
-			else if (argument.Contains(Commands.RemoveBot))
+			else if (command.Equals(Commands.RemoveBot))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.RemoveBot(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
+				await SendResultResponse(webhookUpdate, await _botRepo.RemoveBot(commandUserName, arguments[0]));
 			}
-			else if (argument.Contains(Commands.DisableBot))
+			else if (command.Equals(Commands.DisableBot))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.DisableBot(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
+				await SendResultResponse(webhookUpdate, await _botRepo.DisableBot(commandUserName, arguments[0]));
 			}
-			else if (argument.Contains(Commands.FailedLogins))
+			else if (command.Equals(Commands.FailedLogins))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.GetFailedLogins(webhookUpdate?.Message?.From?.Username ?? string.Empty));
+				await SendResultResponse(webhookUpdate, await _botRepo.GetFailedLogins(commandUserName));
 			}
-			else if (argument.Contains(Commands.DisabledIds))
+			else if (command.Equals(Commands.DisabledIds))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.GetDisabledIds(webhookUpdate?.Message?.From?.Username ?? string.Empty));
+				await SendResultResponse(webhookUpdate, await _botRepo.GetDisabledIds(commandUserName));
 			}
-			else if (argument.Contains(Commands.LockedIds))
+			else if (command.Equals(Commands.LockedIds))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.GetLockedIds(webhookUpdate?.Message?.From?.Username ?? string.Empty));
+				await SendResultResponse(webhookUpdate, await _botRepo.GetLockedIds(commandUserName));
 			}
-			else if (argument.Contains(Commands.SuspendedIds))
+			else if (command.Equals(Commands.SuspendedIds))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.GetSuspendedIds(webhookUpdate?.Message?.From?.Username ?? string.Empty));
+				await SendResultResponse(webhookUpdate, await _botRepo.GetSuspendedIds(commandUserName));
 			}
-			else if (argument.Contains(Commands.ReEnableId))
+			else if (command.Equals(Commands.ReEnableId))
 			{
-				var userNames = argument.Split(" ").Skip(1).FirstOrDefault(u => !u.Contains('-'))?.Split(',').Select(u => u.ToLower()).ToList() ?? [];
-				var switches = argument.Split(" ").Skip(1).Where(a => a.Contains('-')).Select(a => a.ToLower()).ToList();
+				
 
-				await SendResultResponse(webhookUpdate, _botRepo.ActivateIds(webhookUpdate?.Message?.From?.Username ?? string.Empty, userNames, switches));
+				await SendResultResponse(webhookUpdate, _botRepo.ActivateIds(commandUserName, arguments, switches));
 			}
-			else if (argument.Contains(Commands.BotStatistics))
+			else if (command.Equals(Commands.BotStatistics))
 			{
-				await SendResultResponse(webhookUpdate, _botRepo.GetBotStatistics(webhookUpdate?.Message?.From?.Username ?? string.Empty));
+				await SendResultResponse(webhookUpdate, _botRepo.GetBotStatistics(commandUserName));
 			}
 			#endregion
 
-			else if (argument.Contains(Commands.KillSwitch))
+			else if (command.Equals(Commands.KillSwitch))
 			{
 				await SendResultResponse(webhookUpdate, await KillAllProcesses(webhookUpdate));
 			}
@@ -150,7 +179,7 @@ namespace TwitterBotApi.Services
 			}
 
 #if !DEBUG
-			await _botRepo.AddUpdateProcessStatus(webhookUpdate?.UpdateId, webhookUpdate?.Message?.MessageId, webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Text ?? string.Empty);
+			await _botRepo.AddUpdateProcessStatus(webhookUpdate?.UpdateId, webhookUpdate?.Message?.MessageId, commandUserName, webhookUpdate?.Message?.Text ?? string.Empty);
 #endif
 		}
 		#region privatemethods

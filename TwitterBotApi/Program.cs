@@ -38,7 +38,7 @@ namespace TwitterBotApi
 				   .UseSqlServerStorage(builder.Configuration.GetConnectionString("HangfireConnection"), new SqlServerStorageOptions
 				   {
 					   CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-					   SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+					   SlidingInvisibilityTimeout = TimeSpan.FromMinutes(61),
 					   QueuePollInterval = TimeSpan.Zero,
 					   UseRecommendedIsolationLevel = true,
 					   DisableGlobalLocks = true

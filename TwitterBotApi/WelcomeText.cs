@@ -4,7 +4,7 @@
 	{
 		public const string Message = $"{WelcomeMessage}\n\n{UserCommands}";
 		
-		private const string WelcomeMessage = $"<b>Welcome to Nocturnal Twitter Bot!</b>";
+		private const string WelcomeMessage = $"<b>Welcome to Team Prahaar Bot!</b>\n<i>If you had not committed great sins, God would not have sent a punishment like me upon you.</i> <b>#TeamPrahaar</b>";
 		private const string UserCommands = $"<b>Available Commands:</b>\n{Commands.LikeRetweet} <i>TweetUrl</i>\n{Commands.JoinLaugh} <i>SpaceUrl</i>" +
 			$"\n{Commands.LikeRetweet} <i>TweetUrl</i>\n{Commands.RJoinSpace} <i>SpaceUrl</i> -anonymous -timeoffset:20 <i>(switches are optional, offset is in seconds)</i>" +
 			$"\n{Commands.LeaveSpace} <i>SpaceUrl</i>\n{Commands.Follow} <i>ProfileUrl</i>\n{Commands.ReportSpace} <i>SpaceUrl</i>";
