@@ -34,7 +34,7 @@ namespace TwitterBotApi.Services
 			var commandUserName = webhookUpdate?.Message?.From?.Username ?? string.Empty;
 			var userMessageString = _argumentHelper.GetArguments(webhookUpdate ?? new());
 			var command = userMessageString.Split(" ").FirstOrDefault() ?? string.Empty;
-			var arguments = userMessageString.Split(" ").Skip(1).FirstOrDefault(u => !u.Contains('-'))?.Split(',').Select(u => u.ToLower()).ToList() ?? [];
+			var arguments = userMessageString.Split(" ").Skip(1).Select(u => u.ToLower()).ToList() ?? [];
 			if (!arguments.Any()) { arguments.Add(string.Empty); }
 
 			var switches = userMessageString.Split(" ").Skip(1).Where(a => a.Contains('-')).Select(a => a.ToLower()).ToList();
@@ -160,10 +160,8 @@ namespace TwitterBotApi.Services
 				await SendResultResponse(webhookUpdate, await _botRepo.GetSuspendedIds(commandUserName));
 			}
 			else if (command.Equals(Commands.ReEnableId, StringComparison.InvariantCultureIgnoreCase))
-			{
-				
-
-				await SendResultResponse(webhookUpdate, _botRepo.ActivateIds(commandUserName, arguments, switches));
+			{				
+				await SendResultResponse(webhookUpdate, _botRepo.ActivateIds(commandUserName, arguments[0]?.Split(" ")?.ToList() ?? [], switches));
 			}
 			else if (command.Equals(Commands.BotStatistics, StringComparison.InvariantCultureIgnoreCase))
 			{
