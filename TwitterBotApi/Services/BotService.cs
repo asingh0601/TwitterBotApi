@@ -83,7 +83,7 @@ namespace TwitterBotApi.Services
 				}
 				else
 				{
-					_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.LikeRetweet} {arguments[0]}", );
+					_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.LikeRetweet} {arguments[0]}");
 				}
 			}
 			else if (command.Equals(Commands.JoinLaugh, StringComparison.InvariantCultureIgnoreCase))
