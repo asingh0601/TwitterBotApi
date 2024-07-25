@@ -83,20 +83,20 @@ namespace TwitterBotApi.Services
 				}
 				else
 				{
-					_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.LikeRetweet} {arguments[0]}");
+					_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.LikeRetweet} {arguments[0]}", verbose);
 				}
 			}
 			else if (command.Equals(Commands.JoinLaugh, StringComparison.InvariantCultureIgnoreCase))
 			{
-				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.JoinLaugh} {arguments[0]}");
+				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.JoinLaugh} {arguments[0]}", verbose);
 			}
 			else if (command.Equals(Commands.JoinSpace, StringComparison.InvariantCultureIgnoreCase))
 			{
-				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.JoinSpace} {arguments[0]}");
+				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.JoinSpace} {arguments[0]}", verbose);
 			}
 			else if (command.Equals(Commands.RJoinSpace, StringComparison.InvariantCultureIgnoreCase))
 			{
-				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.RJoinSpace} {arguments[0]}");
+				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.RJoinSpace} {arguments[0]}", verbose);
 			}
 			else if (command.Equals(Commands.LeaveSpace, StringComparison.InvariantCultureIgnoreCase))
 			{
@@ -118,12 +118,12 @@ namespace TwitterBotApi.Services
 				}
 				else
 				{
-					_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.Follow} {arguments[0]}");
+					_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.Follow} {arguments[0]}", verbose);
 				}
 			}
 			else if (command.Equals(Commands.ReportSpace, StringComparison.InvariantCultureIgnoreCase))
 			{
-				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.ReportSpace} {arguments[0]}");
+				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.ReportSpace} {arguments[0]}", verbose);
 			}
 			#endregion
 
