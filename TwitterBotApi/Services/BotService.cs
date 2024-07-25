@@ -71,7 +71,7 @@ namespace TwitterBotApi.Services
 			else if (command.Equals(Commands.LikeRetweet))
 			{
 				var commandDisabled = true;
-				if(arguments.Any(a => a == "-bypass"))
+				if(switches.Any(a => a == "-bypass"))
 				{
 					commandDisabled = false;
 				}
@@ -106,7 +106,7 @@ namespace TwitterBotApi.Services
 			else if (command.Equals(Commands.Follow))
 			{
 				var commandDisabled = true;
-				if (arguments.Any(a => a == "-bypass"))
+				if (switches.Any(a => a == "-bypass"))
 				{
 					commandDisabled = false;
 				}
