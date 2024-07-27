@@ -514,7 +514,7 @@ namespace TwitterBotApi.Repos
 			{
 				SqlConnection conn = new(_botDbContext.ConnectionString);
 				conn.Open();
-				var sqlQuery = $"SELECT ProcessId, Directory, LoginSuccessful FROM SpaceProcessIds WHERE ProcessDate < '{DateTime.Now.AddMinutes(-10):yyyyMMdd HH:mm:ss}') AND (Url is null OR Url = '') And ProcessKilled = 0";
+				var sqlQuery = $"SELECT ProcessId, Directory, LoginSuccessful FROM SpaceProcessIds WHERE ProcessDate < '{DateTime.Now.AddMinutes(-10):yyyyMMdd HH:mm:ss}' AND (Url is null OR Url = '') And ProcessKilled = 0";
 
 				using SqlCommand command = new(sqlQuery, conn);
 				var result = command.ExecuteReader();
