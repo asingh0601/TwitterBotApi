@@ -35,7 +35,6 @@ namespace TwitterBotApi.Services
 			var userMessageString = _argumentHelper.GetArguments(webhookUpdate ?? new());
 			var command = userMessageString.Split(" ").FirstOrDefault() ?? string.Empty;
 			var arguments = userMessageString.Split(" ").Skip(1).Select(u => u.ToLower()).ToList() ?? [];
-			if (!arguments.Any()) { arguments.Add(string.Empty); }
 
 			var switches = userMessageString.Split(" ").Skip(1).Where(a => a.Contains('-')).Select(a => a.ToLower()).ToList();
 			var verbose = switches.Any(a => a.Equals("-verbose", StringComparison.InvariantCultureIgnoreCase));
