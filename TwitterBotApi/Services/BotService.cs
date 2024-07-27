@@ -31,144 +31,132 @@ namespace TwitterBotApi.Services
 
 		public async Task ProcessUpdate(WebHookUpdate webhookUpdate)
 		{
-			var commandUserName = webhookUpdate?.Message?.From?.Username ?? string.Empty;
-			var userMessageString = _argumentHelper.GetArguments(webhookUpdate ?? new());
-			var command = userMessageString.Split(" ").FirstOrDefault() ?? string.Empty;
-			var arguments = userMessageString.Split(" ").Skip(1).Select(u => u.ToLower()).ToList() ?? [];
-
-			var switches = userMessageString.Split(" ").Skip(1).Where(a => a.Contains('-')).Select(a => a.ToLower()).ToList();
-			var verbose = switches.Any(a => a.Equals("-verbose", StringComparison.InvariantCultureIgnoreCase));
+			var argument = _argumentHelper.GetArguments(webhookUpdate);
+			bool verbose = argument.Contains("-verbose");
 
 			if (_botRepo.IsUpdateProcessed(webhookUpdate?.UpdateId, webhookUpdate?.Message?.MessageId))
 			{
 				return;
 			}
 
-			if (command.Equals(Commands.Start))
+			if (argument.Contains(Commands.Start))
 			{
 				await _telegramHelper.SendMessage(webhookUpdate?.Message?.Chat?.Id, $"{WelcomeText.Message}{(_botRepo.IsAdmin(webhookUpdate?.Message?.From?.Username ?? string.Empty) ? WelcomeText.AdminCommands : string.Empty)}");
 			}
 
 			#region usermanagement
-			else if (command.Equals(Commands.AddUser, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.AddUser))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.AddUser(commandUserName, arguments[0]));
+				await SendResultResponse(webhookUpdate, await _botRepo.AddUser(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
 			}
-			else if (command.Equals(Commands.RemoveUser, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.RemoveUser))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.RemoveUser(commandUserName, arguments[0]));
+				await SendResultResponse(webhookUpdate, await _botRepo.RemoveUser(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
 			}
-			else if (command.Equals(Commands.PromoteUser, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.PromoteUser))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.PromoteUser(commandUserName, arguments[0]));
+				await SendResultResponse(webhookUpdate, await _botRepo.PromoteUser(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
 			}
-			else if (command.Equals(Commands.DemoteUser, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.DemoteUser))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.DemoteUser(commandUserName, arguments[0]));
+				await SendResultResponse(webhookUpdate, await _botRepo.DemoteUser(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
 			}
 			#endregion
 
 			#region botactions
-			else if (command.Equals(Commands.LikeRetweet, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.LikeRetweet))
 			{
-				var commandDisabled = true;
-				if(switches.Any(a => a.Equals("-bypass", StringComparison.InvariantCultureIgnoreCase)))
+				bool bypass = argument.Contains("-bypass");
+				if(bypass)
 				{
-					commandDisabled = false;
+					_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument, verbose);
 				}
-				if (commandDisabled)
+				else
 				{
 					await SendResultResponse(webhookUpdate, "Like and retweet bot is disabled for now.");
 				}
-				else
-				{
-					_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.LikeRetweet} {arguments[0]}", verbose);
-				}
+				
 			}
-			else if (command.Equals(Commands.JoinLaugh, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.JoinLaugh))
 			{
-				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.JoinLaugh} {arguments[0]}", verbose);
+				_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument, verbose);
 			}
-			else if (command.Equals(Commands.JoinSpace, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.JoinSpace))
 			{
-				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.JoinSpace} {arguments[0]}", verbose);
+				_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument, verbose);
 			}
-			else if (command.Equals(Commands.RJoinSpace, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.RJoinSpace))
 			{
-				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.RJoinSpace} {arguments[0]}", verbose);
+				_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument, verbose);
 			}
-			else if (command.Equals(Commands.LeaveSpace, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.LeaveSpace))
 			{
 				if (OperatingSystem.IsWindows())
 				{
-					LeaveTwitterSpace(commandUserName, arguments[0]);
+					LeaveTwitterSpace(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]);
 				}
 			}
-			else if (command.Equals(Commands.Follow, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.Follow))
 			{
-				var commandDisabled = true;
-				if (switches.Any(a => a == "-bypass"))
+				bool bypass = argument.Contains("-bypass");
+				if (bypass)
 				{
-					commandDisabled = false;
-				}
-				if (commandDisabled)
-				{
-					await SendResultResponse(webhookUpdate, "Follow bot is disabled for now.");
+					_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument, verbose);
 				}
 				else
 				{
-					_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.Follow} {arguments[0]}", verbose);
+					await SendResultResponse(webhookUpdate, "Follow bot is disabled for now.");
 				}
 			}
-			else if (command.Equals(Commands.ReportSpace, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.ReportSpace))
 			{
-				_botHelper.RunCommand(commandUserName, webhookUpdate?.Message?.Chat?.Id, $"{Commands.ReportSpace} {arguments[0]}", verbose);
+				_botHelper.RunCommand(webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Chat?.Id, argument, verbose);
 			}
 			#endregion
 
 			#region botmanagement
-			else if (command.Equals(Commands.AddBot, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.AddBot))
 			{
-				var userName = arguments.FirstOrDefault() ?? string.Empty;
-				var emailId = arguments.Skip(1).FirstOrDefault() ?? string.Empty;
-				var password = arguments.Skip(2).FirstOrDefault() ?? string.Empty;	
-				await SendResultResponse(webhookUpdate, await _botRepo.AddBot(commandUserName, userName, emailId, password));
+				await SendResultResponse(webhookUpdate, await _botRepo.AddBot(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1], argument.Split(' ')[2], argument.Split(' ')[3]));
 			}
-			else if (command.Equals(Commands.RemoveBot, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.RemoveBot))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.RemoveBot(commandUserName, arguments[0]));
+				await SendResultResponse(webhookUpdate, await _botRepo.RemoveBot(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
 			}
-			else if (command.Equals(Commands.DisableBot, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.DisableBot))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.DisableBot(commandUserName, arguments[0]));
+				await SendResultResponse(webhookUpdate, await _botRepo.DisableBot(webhookUpdate?.Message?.From?.Username ?? string.Empty, argument.Split(' ')[1]));
 			}
-			else if (command.Equals(Commands.FailedLogins, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.FailedLogins))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.GetFailedLogins(commandUserName));
+				await SendResultResponse(webhookUpdate, await _botRepo.GetFailedLogins(webhookUpdate?.Message?.From?.Username ?? string.Empty));
 			}
-			else if (command.Equals(Commands.DisabledIds, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.DisabledIds))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.GetDisabledIds(commandUserName));
+				await SendResultResponse(webhookUpdate, await _botRepo.GetDisabledIds(webhookUpdate?.Message?.From?.Username ?? string.Empty));
 			}
-			else if (command.Equals(Commands.LockedIds, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.LockedIds))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.GetLockedIds(commandUserName));
+				await SendResultResponse(webhookUpdate, await _botRepo.GetLockedIds(webhookUpdate?.Message?.From?.Username ?? string.Empty));
 			}
-			else if (command.Equals(Commands.SuspendedIds, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.SuspendedIds))
 			{
-				await SendResultResponse(webhookUpdate, await _botRepo.GetSuspendedIds(commandUserName));
+				await SendResultResponse(webhookUpdate, await _botRepo.GetSuspendedIds(webhookUpdate?.Message?.From?.Username ?? string.Empty));
 			}
-			else if (command.Equals(Commands.ReEnableId, StringComparison.InvariantCultureIgnoreCase))
-			{				
-				await SendResultResponse(webhookUpdate, _botRepo.ActivateIds(commandUserName, arguments[0]?.Split(" ")?.ToList() ?? [], switches));
-			}
-			else if (command.Equals(Commands.BotStatistics, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.ReEnableId))
 			{
-				await SendResultResponse(webhookUpdate, _botRepo.GetBotStatistics(commandUserName));
+				var userNames = argument.Split(" ").Skip(1).FirstOrDefault(u => !u.Contains('-'))?.Split(',').Select(u => u.ToLower()).ToList() ?? [];
+				var switches = argument.Split(" ").Skip(1).Where(a => a.Contains('-')).Select(a => a.ToLower()).ToList();
+
+				await SendResultResponse(webhookUpdate, _botRepo.ActivateIds(webhookUpdate?.Message?.From?.Username ?? string.Empty, userNames, switches));
+			}
+			else if (argument.Contains(Commands.BotStatistics))
+			{
+				await SendResultResponse(webhookUpdate, _botRepo.GetBotStatistics(webhookUpdate?.Message?.From?.Username ?? string.Empty));
 			}
 			#endregion
 
-			else if (command.Equals(Commands.KillSwitch, StringComparison.InvariantCultureIgnoreCase))
+			else if (argument.Contains(Commands.KillSwitch))
 			{
 				await SendResultResponse(webhookUpdate, await KillAllProcesses(webhookUpdate));
 			}
@@ -178,7 +166,7 @@ namespace TwitterBotApi.Services
 			}
 
 #if !DEBUG
-			await _botRepo.AddUpdateProcessStatus(webhookUpdate?.UpdateId, webhookUpdate?.Message?.MessageId, commandUserName, webhookUpdate?.Message?.Text ?? string.Empty);
+			await _botRepo.AddUpdateProcessStatus(webhookUpdate?.UpdateId, webhookUpdate?.Message?.MessageId, webhookUpdate?.Message?.From?.Username ?? string.Empty, webhookUpdate?.Message?.Text ?? string.Empty);
 #endif
 		}
 		#region privatemethods
